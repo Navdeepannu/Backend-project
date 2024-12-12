@@ -7,7 +7,7 @@ const asyncHandler = (requestHandler) => {
   };
 };
 
-export default asyncHandler;
+export { asyncHandler };
 
 // Higher order functions, try-catch syntax
 // const asyncHandler = (fn) => async (req, res, next) => {
