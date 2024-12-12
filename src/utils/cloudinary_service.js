@@ -1,32 +1,53 @@
 import { v2 as cloudinary } from "cloudinary";
-import { fs } from "fs"; // File system
+import fs from "fs/promises";
 
-// Configration
+// Configuration
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
   api_secret: process.env.CLOUDINARY_API_SECRET,
 });
 
-// Upload to cloudinary
-const uloadCloudinary = async (localfilePath) => {
+// Upload to Cloudinary
+const uploadOnCloudinary = async (localFilePath) => {
   try {
-    // Check if loacal path
-    if (!localfilePath) return null;
+    // Validate local file path
+    if (!localFilePath) {
+      console.error("Invalid file path provided.");
+      return null;
+    }
 
-    // Upload to cloudinary
-    const response = await cloudinary.uploader.upload(localfilePath, {
-      public_id: "test",
-      resource_type: "auto",
+    // Check if file exists
+    try {
+      await fs.access(localFilePath); // Throws if the file does not exist
+    } catch {
+      console.error("File does not exist at the specified path.");
+      return null;
+    }
+
+    // Upload to Cloudinary
+    const response = await cloudinary.uploader.upload(localFilePath, {
+      resource_type: "auto", // Automatically detect file type (image/video/etc.)
     });
 
-    // File has been uploaded to cloudinary successfully
-    console.log(`File upload on Cloudinary successfully at : ${response.url}`);
+    // Log successful upload
+    console.log(`File uploaded successfully to Cloudinary: ${response.url}`);
+    // unlink the local file
+    await fs.unlink(localFilePath);
     return response;
   } catch (error) {
-    fs.unlinkSync(localfilePath); // remove the locally saved temporary file as the upload operation failed
+    console.error("Error uploading to Cloudinary:", error.message);
+
+    // Remove the local file if upload fails
+    try {
+      await fs.unlink(localFilePath);
+      console.log("Temporary file deleted successfully.");
+    } catch (unlinkError) {
+      console.error("Error deleting local file:", unlinkError.message);
+    }
+
     return null;
   }
 };
 
-export { uloadCloudinary };
+export { uploadOnCloudinary };
