@@ -50,4 +50,6 @@ const uploadOnCloudinary = async (localFilePath) => {
   }
 };
 
+//TODO: Delete from cloudinary
+
 export { uploadOnCloudinary };
